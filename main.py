@@ -1,57 +1,50 @@
-import asyncio
+import os
+import json
+from flask import Flask, request
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
-from aiohttp import web
-import random
+from aiogram.types import ParseMode
 
-# ===== CONFIG =====
-TOKEN = "8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64"
-
-bot = Bot(token=TOKEN)
+TOKEN = os.getenv("8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64")  # токен в Secrets
+bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 
-# ===== NAMES & VOTES =====
+# ======= СПИСОК ИМЕН =======
 names = ["хизя", "омар нажмик", "омар", "исма", "расул", "ислам"]
 vote_stats = {name: 0 for name in names}
 
-# ===== BOT COMMANDS =====
+# ===================
+# ===== КОМАНДЫ =====
+# ===================
 
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.answer("Бот запущен! Используй /help для списка команд.")
+@dp.message_handler(commands=["start"])
+async def start(message: types.Message):
+    await message.answer("бот четко работает! используй /help для списка команд")
 
-@dp.message(Command("help"))
-async def cmd_help(message: types.Message):
+@dp.message_handler(commands=["help"])
+async def help_cmd(message: types.Message):
     await message.answer(
         "/random — перемешать имена\n"
         "/vote — создать голосование\n"
         "/addname <имя> — добавить имя\n"
         "/removename <имя> — удалить имя\n"
         "/listnames — показать список имен\n"
-        "/leaderboard — топ по голосам\n"
+        "/leaderboard — топ голосов\n"
         "/stats — общая статистика"
     )
 
-@dp.message(Command("random"))
-async def cmd_random(message: types.Message):
+@dp.message_handler(commands=["random"])
+async def random_cmd(message: types.Message):
+    import random
     shuffled = names.copy()
     random.shuffle(shuffled)
-    text = "\n".join([f"{i+1}. {n}" for i, n in enumerate(shuffled)])
-    await message.answer("🎲:\n\n" + text)
+    text = "\n".join(f"{i+1}. {name}" for i, name in enumerate(shuffled))
+    await message.answer(f"🎲:\n{text}")
 
-@dp.message(Command("vote"))
-async def cmd_vote(message: types.Message):
-    await message.answer_poll(
-        question="вуш",
-        options=names,
-        is_anonymous=False
-    )
-
-@dp.message(Command("addname"))
-async def cmd_addname(message: types.Message):
+@dp.message_handler(commands=["addname"])
+async def add_name(message: types.Message):
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("используй: /addname имя")
+        await message.answer("использование: /addname имя")
         return
     name = parts[1].strip()
     if name in names:
@@ -61,11 +54,11 @@ async def cmd_addname(message: types.Message):
     vote_stats[name] = 0
     await message.answer(f"имя '{name}' добавлено")
 
-@dp.message(Command("removename"))
-async def cmd_removename(message: types.Message):
+@dp.message_handler(commands=["removename"])
+async def remove_name(message: types.Message):
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("используй: /removename имя")
+        await message.answer("использование: /removename имя")
         return
     name = parts[1].strip()
     if name not in names:
@@ -75,43 +68,56 @@ async def cmd_removename(message: types.Message):
     vote_stats.pop(name, None)
     await message.answer(f"имя '{name}' удалено")
 
-@dp.message(Command("listnames"))
-async def cmd_listnames(message: types.Message):
+@dp.message_handler(commands=["listnames"])
+async def list_names(message: types.Message):
     text = "\n".join(f"- {n}" for n in names)
-    await message.answer("список имен:\n\n" + text)
+    await message.answer(f"список имен:\n{text}")
 
-@dp.message(Command("leaderboard"))
-async def cmd_leaderboard(message: types.Message):
+@dp.message_handler(commands=["vote"])
+async def vote_cmd(message: types.Message):
+    await message.answer_poll(
+        question="вуш",
+        options=names,
+        is_anonymous=False
+    )
+
+@dp.message_handler(commands=["leaderboard"])
+async def leaderboard_cmd(message: types.Message):
     if not vote_stats:
-        await message.answer("статистика пустая")
+        await message.answer("статистика пока пустая.")
         return
     sorted_stats = sorted(vote_stats.items(), key=lambda x: -x[1])
     text = "\n".join([f"{i+1}. {name} — {count}" for i, (name, count) in enumerate(sorted_stats)])
-    await message.answer("🏆 топ голосов:\n\n" + text)
+    await message.answer(f"🏆 четкий гадиймар:\n{text}")
 
-@dp.message(Command("stats"))
-async def cmd_stats(message: types.Message):
+@dp.message_handler(commands=["stats"])
+async def stats_cmd(message: types.Message):
     total_votes = sum(vote_stats.values())
-    text = "\n".join([f"{name}: {count}" for name, count in vote_stats.items()])
-    await message.answer(f"📊 общая статистика (всего голосов: {total_votes}):\n\n{text}")
+    text = "\n".join(f"{name}: {count}" for name, count in vote_stats.items())
+    await message.answer(f"📊 общая статистика (всего голосов: {total_votes}):\n{text}")
 
+# ===================
+# ===== FLASK =======
+# ===================
 
-# ===== KEEP-ALIVE SERVER =====
-async def handle_alive(request):
-    return web.Response(text="Bot is alive")
+app = Flask(__name__)
 
-async def start_server():
-    app = web.Application()
-    app.router.add_get("/", handle_alive)
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8080)
-    await site.start()
+@app.route("/")
+def alive():
+    return "Bot is alive"
 
-# ===== MAIN LOOP =====
-async def main():
-    asyncio.create_task(start_server())
-    await dp.start_polling(bot)
+@app.route(f"/{TOKEN}", methods=["POST"])
+def telegram_webhook():
+    update = types.Update(**request.get_json())
+    Dispatcher.set_current(dp)
+    dp.update = update
+    return Dispatcher.set_current(dp).process_update(update)
+
+# ===================
+# ===== RUN =======
+# ===================
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    app.run(host="0.0.0.0", port=8080)
