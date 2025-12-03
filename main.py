@@ -1,17 +1,14 @@
-import os
-import asyncio
 import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
-from aiohttp import web
+from keep_alive import keep_alive
 
 # ==== CONFIG ====
 TOKEN = "8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-
-# Список имён
+# ==== DATA ====
 names = ["хизя", "омар нажмик", "омар", "исма", "расул", "ислам"]
 vote_stats = {name: 0 for name in names}
 
@@ -58,7 +55,7 @@ async def cmd_addname(message: types.Message):
         return
     name = parts[1].strip()
     if name in names:
-        await message.answer("уже ани и асад имя")
+        await message.answer("уже есть такое имя")
         return
     names.append(name)
     vote_stats[name] = 0
@@ -72,7 +69,7 @@ async def cmd_removename(message: types.Message):
         return
     name = parts[1].strip()
     if name not in names:
-        await message.answer("асад имя адишь")
+        await message.answer("такого имени нет")
         return
     names.remove(name)
     vote_stats.pop(name, None)
@@ -101,27 +98,11 @@ async def cmd_stats(message: types.Message):
 # =========================
 #        KEEP-ALIVE
 # =========================
-
-async def handle_alive(request):
-    return web.Response(text="Bot is alive!")
-
-async def start_server():
-    app = web.Application()
-    app.router.add_get("/", handle_alive)
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8080)
-    await site.start()
+keep_alive()  # запускаем сервер Flask
 
 # =========================
-#        MAIN
+#        RUN BOT
 # =========================
-
-async def main():
-    asyncio.create_task(start_server())
-    await dp.start_polling(bot)
-
 if __name__ == "__main__":
-    asyncio.run(main())
-
-
+    import asyncio
+    asyncio.run(dp.start_polling(bot))
