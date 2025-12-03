@@ -2,6 +2,7 @@ import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from keep_alive import keep_alive
+import asyncio
 
 # ==== CONFIG ====
 TOKEN = "8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64"
@@ -104,5 +105,4 @@ keep_alive()  # запускаем сервер Flask
 #        RUN BOT
 # =========================
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(dp.start_polling(bot))
