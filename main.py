@@ -6,9 +6,10 @@ from aiogram.filters import Command
 from aiohttp import web
 
 # ==== CONFIG ====
-TOKEN = os.getenv("TOKEN")  # добавь свой токен в Replit Secrets
+TOKEN = "8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64"
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
 
 # Список имён
 names = ["хизя", "омар нажмик", "омар", "исма", "расул", "ислам"]
@@ -122,4 +123,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
