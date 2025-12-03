@@ -99,7 +99,7 @@ async def cmd_stats(message: types.Message):
 # =========================
 #        KEEP-ALIVE
 # =========================
-keep_alive()  # запускаем сервер Flask
+keep_alive()  # запускаем Flask сервер
 
 # =========================
 #        RUN BOT
