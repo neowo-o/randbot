@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from aiohttp import web
 
 # ==== CONFIG ====
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # добавь свой токен в Replit Secrets
+TOKEN = os.getenv("TOKEN")  # добавь свой токен в Replit Secrets
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -122,3 +122,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
