@@ -4,7 +4,7 @@ from flask import Flask, request
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ParseMode
 
-TOKEN = os.getenv("8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64")  # токен в Secrets
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # токен в Secrets
 bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
 
@@ -121,3 +121,4 @@ if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.INFO)
     app.run(host="0.0.0.0", port=8080)
+
