@@ -1,8 +1,8 @@
+import os
 import random
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from keep_alive import keep_alive
-import asyncio
 
 # ==== CONFIG ====
 TOKEN = "8212751693:AAHebJ3KKwKlOuk1s4rBcPnmGCQrSQq0N64"
@@ -99,10 +99,11 @@ async def cmd_stats(message: types.Message):
 # =========================
 #        KEEP-ALIVE
 # =========================
-keep_alive()  # запускаем Flask сервер
+keep_alive()  # запуск веб-сервера для UptimeRobot
 
 # =========================
 #        RUN BOT
 # =========================
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(dp.start_polling(bot))
